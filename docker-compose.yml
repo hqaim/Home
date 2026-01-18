@@ -1,0 +1,41 @@
+services:
+  web:
+    container_name: hqaim-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - hqaim-network
+
+  nginx:
+    container_name: hqaim-nginx
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./public:/app/public
+    depends_on:
+      - web
+    networks:
+      - hqaim-network
+
+  certbot:
+    container_name: hqaim_certbot
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - hqaim-network
+
+networks:
+  hqaim-network:
+    driver: bridge
